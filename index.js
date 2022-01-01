@@ -76,8 +76,17 @@ async function run() {
                     { role: "Learner" }
                 ]
             });
-            const users = await cursor.toArray();
             const count = await cursor.count();
+            const page = req.query.page;
+            const size = req.query.size;
+            let users;
+            if (page) {
+                users = await cursor.skip(page * size).limit(size).toArray();
+            }
+            else {
+                users = await cursor.toArray();
+            }
+
             res.json({ count, users });
         })
 
