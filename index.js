@@ -8,7 +8,10 @@ const app = express();
 const port = process.env.PORT || 5000;
 
 // middleware
-app.use(cors());
+// app.use(cors());
+app.use(cors({
+    origin: '*'
+}));
 app.use(express.json());
 app.use(fileUpload());
 
@@ -70,17 +73,23 @@ async function run() {
 
         // All users GET API
         app.get('/users', async (req, res) => {
-            const cursor = await userCollection.find({
+            const query = {
                 $or: [
                     { role: "Rider" },
                     { role: "Learner" }
                 ]
-            });
+            };
+            const cursor = await userCollection.find(query);
             const count = await cursor.count();
             const page = req.query.page;
-            const size = req.query.size;
+            const size = parseInt(req.query.size);
+            const email = req.query.email;
             let users;
-            if (page) {
+
+            if (email) {
+                users = await userCollection.findOne({ email: email })
+            }
+            else if (page) {
                 users = await cursor.skip(page * size).limit(size).toArray();
             }
             else {
